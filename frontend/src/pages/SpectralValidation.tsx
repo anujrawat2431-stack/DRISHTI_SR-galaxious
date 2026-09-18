@@ -2,19 +2,39 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Activity, Radio, RefreshCw } from "lucide-react";
 import { getSpectralValidation } from "../services/api";
+
+interface BandResult {
+  band: string;
+  rmse: number;
+  status: string;
+}
+
+interface SpectralResult {
+  status?: string;
+  message?: string;
+  spectral_fidelity?: number;
+  sam_score?: number;
+  rmse?: number;
+  bands?: BandResult[];
+}
+
 export default function SpectralValidation() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("Checking...");
   const [message, setMessage] = useState("");
+  const [data, setData] = useState<SpectralResult | null>(null);
+
   const loadValidation = async () => {
     try {
       setLoading(true);
       const result = await getSpectralValidation();
-      setStatus(result.status || "Ready");
+      setData(result);
+      setStatus(result.status === "ready" ? "Ready" : result.status || "Ready");
       setMessage(result.message || "");
     } catch (error) {
-      setStatus("Unavailable");
+      setData(null);
+      setStatus("Not Ready");
       setMessage(
         error instanceof Error
           ? error.message
@@ -24,143 +44,132 @@ export default function SpectralValidation() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     loadValidation();
   }, []);
+
+  const isReady = data?.status === "ready";
+
   return (
     <div className="space-y-6">
-      {" "}
-      {/* Header */}{" "}
+      {/* Header */}
       <div>
-        {" "}
         <div className="mb-2 flex items-center gap-2 text-sm font-medium text-purple-600">
-          {" "}
-          <Radio className="h-4 w-4" /> VALIDATION{" "}
-        </div>{" "}
+          <Radio className="h-4 w-4" /> VALIDATION
+        </div>
         <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
-          {" "}
-          Spectral Validation{" "}
-        </h1>{" "}
+          Spectral Validation
+        </h1>
         <p className="mt-2 text-sm leading-6 text-text-secondary">
-          {" "}
           Check whether the AI-enhanced imagery preserves the spectral
-          characteristics of the source imagery.{" "}
-        </p>{" "}
+          characteristics of the source imagery.
+        </p>
         <button
           onClick={loadValidation}
           disabled={loading}
           className="mt-4 flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-surface px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {" "}
-          <RefreshCw
-            className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
-          />{" "}
-          {loading ? "Checking..." : "Refresh Validation"}{" "}
-        </button>{" "}
-      </div>{" "}
-      {/* API Status */}{" "}
+          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          {loading ? "Checking..." : "Refresh Validation"}
+        </button>
+      </div>
+
+      {/* API Status */}
       {!loading && (
         <div
-          className={`rounded-lg border px-4 py-3 text-sm ${status === "Unavailable" ? "border-red-200 bg-red-50 text-red-700" : "border-purple-200 bg-purple-50 text-purple-700"}`}
+          className={`rounded-lg border px-4 py-3 text-sm ${
+            status === "Not Ready"
+              ? "border-amber-200 bg-amber-50 text-amber-700"
+              : "border-purple-200 bg-purple-50 text-purple-700"
+          }`}
         >
-          {" "}
-          <p className="font-medium"> Status: {status} </p>{" "}
-          {message && <p className="mt-1"> {message} </p>}{" "}
+          <p className="font-medium">Status: {status}</p>
+          {message && <p className="mt-1">{message}</p>}
         </div>
-      )}{" "}
-      {/* Metrics */}{" "}
+      )}
+
+      {/* Metrics */}
       <div className="grid gap-4 md:grid-cols-3">
-        {" "}
         {[
-          ["Spectral Fidelity", "--"],
-          ["SAM Score", "--"],
-          ["RMSE", "--"],
+          ["Spectral Fidelity", isReady ? `${data?.spectral_fidelity}%` : "--"],
+          ["SAM Score", isReady ? `${data?.sam_score}°` : "--"],
+          ["RMSE", isReady ? `${data?.rmse}` : "--"],
         ].map(([label, value]) => (
           <div
             key={label}
             className="rounded-xl border border-border-subtle bg-bg-surface p-5 shadow-sm"
           >
-            {" "}
             <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
-              {" "}
-              {label}{" "}
-            </p>{" "}
+              {label}
+            </p>
             <p className="mt-2 text-3xl font-semibold text-text-primary">
-              {" "}
-              {value}{" "}
-            </p>{" "}
+              {value}
+            </p>
             <p className="mt-1 text-sm text-text-secondary">
-              {" "}
-              Awaiting validation{" "}
-            </p>{" "}
+              {isReady ? "Computed via self-consistency" : "Awaiting validation"}
+            </p>
           </div>
-        ))}{" "}
-      </div>{" "}
-      {/* Spectral Comparison */}{" "}
+        ))}
+      </div>
+
+      {/* Spectral Comparison */}
       <div className="rounded-2xl border border-border-subtle bg-bg-surface p-6 shadow-sm">
-        {" "}
         <div className="flex items-center gap-3">
-          {" "}
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-bg-surface-secondary">
-            {" "}
-            <Activity className="h-5 w-5 text-text-secondary" />{" "}
-          </div>{" "}
+            <Activity className="h-5 w-5 text-text-secondary" />
+          </div>
           <div>
-            {" "}
             <h2 className="font-semibold text-text-primary">
-              {" "}
-              Spectral Comparison{" "}
-            </h2>{" "}
+              Spectral Comparison
+            </h2>
             <p className="text-sm text-text-secondary">
-              {" "}
-              Band-wise comparison will appear here.{" "}
-            </p>{" "}
-          </div>{" "}
-        </div>{" "}
+              Band-wise RMSE between the source and the AI output.
+            </p>
+          </div>
+        </div>
         <div className="mt-6 space-y-3">
-          {" "}
-          {["B02 · Blue", "B03 · Green", "B04 · Red", "B08 · NIR"].map(
-            (band) => (
-              <div
-                key={band}
-                className="flex items-center justify-between rounded-lg bg-bg-surface-secondary px-4 py-3"
+          {(isReady && data?.bands
+            ? data.bands
+            : [
+                { band: "B02 · Blue", rmse: null, status: "Pending" },
+                { band: "B03 · Green", rmse: null, status: "Pending" },
+                { band: "B04 · Red", rmse: null, status: "Pending" },
+                { band: "B08 · NIR", rmse: null, status: "Pending" },
+              ]
+          ).map((b) => (
+            <div
+              key={b.band}
+              className="flex items-center justify-between rounded-lg bg-bg-surface-secondary px-4 py-3"
+            >
+              <span className="text-sm font-medium text-text-secondary">
+                {b.band}
+              </span>
+              <span
+                className={`text-sm font-medium ${
+                  b.status === "Pass"
+                    ? "text-emerald-600"
+                    : b.status === "Review"
+                      ? "text-amber-600"
+                      : "text-text-muted"
+                }`}
               >
-                {" "}
-                <span className="text-sm font-medium text-text-secondary">
-                  {" "}
-                  {band}{" "}
-                </span>{" "}
-                <span className="text-sm text-text-muted"> Pending </span>{" "}
-              </div>
-            ),
-          )}{" "}
-        </div>{" "}
-      </div>{" "}
-      {/* Next Validation */}{" "}
+                {b.rmse !== null ? `RMSE ${b.rmse} · ${b.status}` : b.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Next Validation */}
       <div className="flex justify-end">
-        {" "}
         <button
           onClick={() => navigate("/validation/geographic")}
           className="rounded-lg bg-bg-surface px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
         >
-          {" "}
-          Next: Geographic Check →{" "}
-        </button>{" "}
-      </div>{" "}
-      {/* Integration Note */}{" "}
-      <div className="rounded-xl border border-blue-100 bg-blue-50 p-5">
-        {" "}
-        <p className="text-sm font-medium text-blue-900">
-          {" "}
-          Spectral Validation Integration Point{" "}
-        </p>{" "}
-        <p className="mt-1 text-sm leading-6 text-blue-700">
-          {" "}
-          The frontend is connected to the spectral validation API. Once the
-          validation module provides spectral fidelity, SAM, RMSE, and
-          band-level results, they can be displayed here automatically.{" "}
-        </p>{" "}
-      </div>{" "}
+          Next: Geographic Check →
+        </button>
+      </div>
     </div>
   );
 }

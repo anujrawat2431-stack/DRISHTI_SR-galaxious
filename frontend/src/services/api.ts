@@ -76,6 +76,10 @@ export async function getHallucinationCheck() {
   return apiRequest("/api/validation/hallucination");
 }
 
+export function getValidationImageUrl(filename: string) {
+  return `${API_URL}/api/validation/image/${encodeURIComponent(filename)}`;
+}
+
 // ===============================
 // Analysis
 // ===============================

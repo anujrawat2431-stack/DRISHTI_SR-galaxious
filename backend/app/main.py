@@ -18,12 +18,20 @@ app = FastAPI(
 )
 
 
-# Allow frontend to communicate with backend
+# Allow frontend to communicate with backend.
+#
+# allow_origins: exact matches - your local dev server plus your live
+# production domain.
+# allow_origin_regex: covers every Vercel PREVIEW deployment too (the
+# random *-git-branch-yourname.vercel.app URLs Vercel creates for each
+# push/PR), so you don't have to add a new origin every time.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
+        "https://drishti-sr-galaxious.vercel.app",
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

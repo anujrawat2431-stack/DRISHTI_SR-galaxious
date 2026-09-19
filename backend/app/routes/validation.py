@@ -13,11 +13,6 @@ router = APIRouter(
 
 
 def _resolve_pair():
-    """
-    Returns (input_path, output_path, stem) for the currently processed
-    scene, or raises HTTPException(409) if super-resolution hasn't been
-    run yet (mirrors the existing "pending" behaviour but with a real reason).
-    """
     input_filename = processing_state.get("input_filename")
     output_filename = processing_state.get("output_filename")
 

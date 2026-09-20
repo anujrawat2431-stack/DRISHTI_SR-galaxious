@@ -1,0 +1,56 @@
+{
+  "dataset": "dataset4",
+  "confidence": {
+    "status": "ready",
+    "message": "Confidence computed from output/input self-consistency (no ground-truth HR image available).",
+    "overall_confidence": 97.6,
+    "high_confidence_area": 99.9,
+    "uncertain_area": 0.0,
+    "image": "dataset4_confidence.png"
+  },
+  "spectral": {
+    "status": "ready",
+    "message": "Spectral fidelity computed by comparing each band to the source imagery via self-consistency.",
+    "spectral_fidelity": 96.4,
+    "sam_score": 1.63,
+    "rmse": 0.0072,
+    "bands": [
+      {
+        "band": "B02 - Blue",
+        "rmse": 0.0039,
+        "status": "Pass"
+      },
+      {
+        "band": "B03 - Green",
+        "rmse": 0.0043,
+        "status": "Pass"
+      },
+      {
+        "band": "B04 - Red",
+        "rmse": 0.0063,
+        "status": "Pass"
+      },
+      {
+        "band": "B08 - NIR",
+        "rmse": 0.0116,
+        "status": "Pass"
+      }
+    ]
+  },
+  "geographic": {
+    "status": "ready",
+    "message": "Compared source and output GeoTIFF CRS and geographic bounds directly.",
+    "geographic_fidelity": 100.0,
+    "crs": "EPSG:4326",
+    "alignment": "Aligned",
+    "max_corner_drift_m": 0.0
+  },
+  "hallucination": {
+    "status": "ready",
+    "message": "Suspicious regions are areas where the AI output is inconsistent with the original observed data.",
+    "suspicious_regions": 0.0,
+    "risk_level": "Low",
+    "trust_status": "Trusted",
+    "image": "dataset4_hallucination.png"
+  }
+}

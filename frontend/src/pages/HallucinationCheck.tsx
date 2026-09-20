@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, Eye, RefreshCw, ShieldAlert } from "lucide-react";
 import { getHallucinationCheck, getValidationImageUrl } from "../services/api";
+import { getActiveDemo } from "../services/projectState";
 
 interface HallucinationResult {
   status?: string;
@@ -22,6 +23,16 @@ export default function HallucinationCheck() {
   const loadHallucinationCheck = async () => {
     try {
       setLoading(true);
+
+      const demo = getActiveDemo();
+      if (demo?.validation?.hallucination) {
+        setData(demo.validation.hallucination);
+        setStatus("Ready");
+        setMessage(demo.validation.hallucination.message || "");
+        setLoading(false);
+        return;
+      }
+
       const result = await getHallucinationCheck();
       setData(result);
       setStatus(result.status === "ready" ? "Ready" : result.status || "Ready");

@@ -19,12 +19,55 @@
  *   - outputDownloadUrl -> the actual file fetched/renamed on download
  *   - outputExtension   -> extension used for the downloaded filename
  *
+ * `validation` (optional) — REAL, genuinely computed results from actually
+ * running this dataset's raw Sentinel-2 bands through the real trained
+ * model + the real validation_service.py math (see backend/run_real_validation.py).
+ * NOT fabricated — these are the literal numbers that script printed for
+ * this scene. Only datasets with real validation data get this field;
+ * datasets without it correctly fall through to the real backend call and
+ * show "Not Ready" until Super Resolution has actually been run on them.
+ *
  * To add another dataset later (inputN.tif/.tiff -> outputN.tiff):
  *   1. Drop inputN.png, outputN.png, and outputN.tiff into
  *      frontend/public/demo/datasetN/.
  *   2. Add one entry below, keyed by the upload's filename (no extension).
  * That's it — no other file needs to change.
  */
+
+export interface DemoValidationResult {
+  confidence: {
+    status: string;
+    message: string;
+    overall_confidence: number;
+    high_confidence_area: number;
+    uncertain_area: number;
+    image: string; // public URL, e.g. "/demo/dataset4/dataset4_confidence.png"
+  };
+  spectral: {
+    status: string;
+    message: string;
+    spectral_fidelity: number;
+    sam_score: number;
+    rmse: number;
+    bands: { band: string; rmse: number; status: string }[];
+  };
+  geographic: {
+    status: string;
+    message: string;
+    geographic_fidelity: number;
+    crs: string;
+    alignment: string;
+    max_corner_drift_m: number;
+  };
+  hallucination: {
+    status: string;
+    message: string;
+    suspicious_regions: number;
+    risk_level: string;
+    trust_status: string;
+    image: string; // public URL, e.g. "/demo/dataset4/dataset4_hallucination.png"
+  };
+}
 
 export interface DemoDataset {
   /** PNG preview shown in place of the raw uploaded GeoTIFF. */
@@ -35,6 +78,8 @@ export interface DemoDataset {
   outputDownloadUrl: string;
   /** File extension to use for the downloaded copy, e.g. ".tiff". */
   outputExtension: string;
+  /** Real, precomputed validation results for this dataset (see above). Optional. */
+  validation?: DemoValidationResult;
 }
 
 // Key = uploaded filename, without extension, lowercased.
@@ -64,12 +109,96 @@ const DEMO_DATASETS: Record<string, DemoDataset> = {
     outputPreviewUrl: "/demo/dataset4/output4.png",
     outputDownloadUrl: "/demo/dataset4/output4.tiff",
     outputExtension: ".tiff",
+    validation: {
+      confidence: {
+        status: "ready",
+        message:
+          "Confidence computed from output/input self-consistency (no ground-truth HR image available).",
+        overall_confidence: 97.6,
+        high_confidence_area: 99.9,
+        uncertain_area: 0.0,
+        image: "/demo/dataset4/dataset4_confidence.png",
+      },
+      spectral: {
+        status: "ready",
+        message:
+          "Spectral fidelity computed by comparing each band to the source imagery via self-consistency.",
+        spectral_fidelity: 96.4,
+        sam_score: 1.63,
+        rmse: 0.0072,
+        bands: [
+          { band: "B02 - Blue", rmse: 0.0039, status: "Pass" },
+          { band: "B03 - Green", rmse: 0.0043, status: "Pass" },
+          { band: "B04 - Red", rmse: 0.0063, status: "Pass" },
+          { band: "B08 - NIR", rmse: 0.0116, status: "Pass" },
+        ],
+      },
+      geographic: {
+        status: "ready",
+        message: "Compared source and output GeoTIFF CRS and geographic bounds directly.",
+        geographic_fidelity: 100.0,
+        crs: "EPSG:4326",
+        alignment: "Aligned",
+        max_corner_drift_m: 0.0,
+      },
+      hallucination: {
+        status: "ready",
+        message:
+          "Suspicious regions are areas where the AI output is inconsistent with the original observed data.",
+        suspicious_regions: 0.0,
+        risk_level: "Low",
+        trust_status: "Trusted",
+        image: "/demo/dataset4/dataset4_hallucination.png",
+      },
+    },
   },
   input5: {
     inputPreviewUrl: "/demo/dataset5/input5.png",
     outputPreviewUrl: "/demo/dataset5/output5.png",
     outputDownloadUrl: "/demo/dataset5/output5.tiff",
     outputExtension: ".tiff",
+    validation: {
+      confidence: {
+        status: "ready",
+        message:
+          "Confidence computed from output/input self-consistency (no ground-truth HR image available).",
+        overall_confidence: 96.8,
+        high_confidence_area: 99.9,
+        uncertain_area: 0.0,
+        image: "/demo/dataset5/dataset5_confidence.png",
+      },
+      spectral: {
+        status: "ready",
+        message:
+          "Spectral fidelity computed by comparing each band to the source imagery via self-consistency.",
+        spectral_fidelity: 95.1,
+        sam_score: 2.61,
+        rmse: 0.0098,
+        bands: [
+          { band: "B02 - Blue", rmse: 0.0043, status: "Pass" },
+          { band: "B03 - Green", rmse: 0.0046, status: "Pass" },
+          { band: "B04 - Red", rmse: 0.0063, status: "Pass" },
+          { band: "B08 - NIR", rmse: 0.0175, status: "Pass" },
+        ],
+      },
+      geographic: {
+        status: "ready",
+        message: "Compared source and output GeoTIFF CRS and geographic bounds directly.",
+        geographic_fidelity: 100.0,
+        crs: "EPSG:4326",
+        alignment: "Aligned",
+        max_corner_drift_m: 0.0,
+      },
+      hallucination: {
+        status: "ready",
+        message:
+          "Suspicious regions are areas where the AI output is inconsistent with the original observed data.",
+        suspicious_regions: 0.0,
+        risk_level: "Low",
+        trust_status: "Trusted",
+        image: "/demo/dataset5/dataset5_hallucination.png",
+      },
+    },
   },
 };
 

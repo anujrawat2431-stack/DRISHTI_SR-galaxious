@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Activity, Radio, RefreshCw } from "lucide-react";
 import { getSpectralValidation } from "../services/api";
+import { getActiveDemo } from "../services/projectState";
 
 interface BandResult {
   band: string;
@@ -28,6 +29,16 @@ export default function SpectralValidation() {
   const loadValidation = async () => {
     try {
       setLoading(true);
+
+      const demo = getActiveDemo();
+      if (demo?.validation?.spectral) {
+        setData(demo.validation.spectral);
+        setStatus("Ready");
+        setMessage(demo.validation.spectral.message || "");
+        setLoading(false);
+        return;
+      }
+
       const result = await getSpectralValidation();
       setData(result);
       setStatus(result.status === "ready" ? "Ready" : result.status || "Ready");

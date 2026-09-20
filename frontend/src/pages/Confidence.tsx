@@ -8,7 +8,7 @@ import {
   FileImage,
 } from "lucide-react";
 import { getConfidence, getValidationImageUrl } from "../services/api";
-import { getProcessedFile } from "../services/projectState";
+import { getProcessedFile, getActiveDemo } from "../services/projectState";
 
 interface ConfidenceResult {
   status?: string;
@@ -33,6 +33,16 @@ export default function Confidence() {
       setMessage("");
       const currentFile = getProcessedFile();
       setProcessedFile(currentFile || "");
+
+      const demo = getActiveDemo();
+      if (demo?.validation?.confidence) {
+        setData(demo.validation.confidence);
+        setStatus("Ready");
+        setMessage(demo.validation.confidence.message || "");
+        setLoading(false);
+        return;
+      }
+
       const result = await getConfidence();
       setData(result);
       setStatus(result.status === "ready" ? "Ready" : result.status || "Ready");

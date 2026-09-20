@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Globe2, MapPin, RefreshCw } from "lucide-react";
 import { getGeographicValidation } from "../services/api";
+import { getActiveDemo } from "../services/projectState";
 
 interface GeoResult {
   status?: string;
@@ -22,6 +23,16 @@ export default function GeographicCheck() {
   const loadValidation = async () => {
     try {
       setLoading(true);
+
+      const demo = getActiveDemo();
+      if (demo?.validation?.geographic) {
+        setData(demo.validation.geographic);
+        setStatus("Ready");
+        setMessage(demo.validation.geographic.message || "");
+        setLoading(false);
+        return;
+      }
+
       const result = await getGeographicValidation();
       setData(result);
       setStatus(result.status === "ready" ? "Ready" : result.status || "Ready");

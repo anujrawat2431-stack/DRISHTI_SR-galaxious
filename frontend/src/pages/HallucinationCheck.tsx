@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, Eye, RefreshCw, ShieldAlert } from "lucide-react";
 import { getHallucinationCheck, getValidationImageUrl } from "../services/api";
+import HeatmapLegend from "../components/HeatmapLegend";
 import { getActiveDemo } from "../services/projectState";
 
 interface HallucinationResult {
@@ -170,7 +171,40 @@ export default function HallucinationCheck() {
             </div>
           )}
         </div>
+        {isReady && data?.image && (
+          <div className="border-t border-border-subtle px-5 py-4">
+            <HeatmapLegend goodLabel="Blue = looks real" badLabel="Red = possibly invented" />
+          </div>
+        )}
       </div>
+
+      {/* Plain-language explanation */}
+      {isReady && (
+        <div className="rounded-2xl border border-orange-100 bg-orange-50/50 p-6">
+          <p className="text-sm font-semibold text-orange-900">
+            What am I looking at?
+          </p>
+          <p className="mt-2 text-sm leading-6 text-orange-800">
+            AI upscaling models can sometimes "hallucinate" — inventing
+            sharp-looking detail (like the edge of a building or a road)
+            that isn't actually confirmed by what the satellite saw. To
+            check for this, the AI's output is shrunk back down and compared
+            against the original photo. Where they still agree, it's colored{" "}
+            <strong>blue</strong> — nothing suspicious. Where they disagree,
+            it shifts toward <strong>yellow, orange, or red</strong> —
+            meaning that detail may have been made up by the model rather
+            than genuinely observed.
+          </p>
+          <p className="mt-3 text-sm leading-6 text-orange-800">
+            For this image, only{" "}
+            <strong>{data?.suspicious_regions}%</strong> of the scene shows
+            this kind of mismatch, which is rated{" "}
+            <strong>{data?.risk_level} risk</strong> — so the output is
+            considered <strong>{data?.trust_status?.toLowerCase()}</strong>{" "}
+            for this scene.
+          </p>
+        </div>
+      )}
 
       {/* Why this matters */}
       <div className="flex items-start gap-3 rounded-xl border border-orange-100 bg-orange-50 p-5">

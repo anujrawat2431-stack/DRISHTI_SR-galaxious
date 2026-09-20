@@ -8,6 +8,7 @@ import {
   FileImage,
 } from "lucide-react";
 import { getConfidence, getValidationImageUrl } from "../services/api";
+import HeatmapLegend from "../components/HeatmapLegend";
 import { getProcessedFile, getActiveDemo } from "../services/projectState";
 
 interface ConfidenceResult {
@@ -191,7 +192,38 @@ export default function Confidence() {
             </div>
           )}
         </div>
+        {isReady && data?.image && (
+          <div className="border-t border-border-subtle px-5 py-4">
+            <HeatmapLegend goodLabel="Blue = confident" badLabel="Red = uncertain" />
+          </div>
+        )}
       </div>
+
+      {/* Plain-language explanation */}
+      {isReady && (
+        <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-6">
+          <p className="text-sm font-semibold text-blue-900">
+            What am I looking at?
+          </p>
+          <p className="mt-2 text-sm leading-6 text-blue-800">
+            To check its own work, the AI shrinks its sharpened image back
+            down to the original size and compares it to the real satellite
+            photo. Where the two still match, that part of the image is
+            colored <strong>blue</strong> — the AI's added sharpness is
+            backed by real data. Where they don't match as well, that area
+            shifts toward <strong>yellow, orange, or red</strong> — meaning
+            the AI guessed at detail that isn't fully confirmed by the
+            original photo, so it's worth a closer look before relying on it.
+          </p>
+          <p className="mt-3 text-sm leading-6 text-blue-800">
+            For this image, <strong>{data?.overall_confidence}%</strong> of
+            the scene is high-confidence, and only{" "}
+            <strong>{data?.uncertain_area}%</strong> falls into the uncertain
+            range — meaning the AI's enhancements here are, on the whole,
+            well supported by the real satellite data it started from.
+          </p>
+        </div>
+      )}
 
       {/* Uncertainty Warning */}
       <div className="flex items-start gap-3 rounded-xl border border-amber-100 bg-amber-50 p-5">

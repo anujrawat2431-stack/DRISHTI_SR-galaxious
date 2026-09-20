@@ -175,7 +175,7 @@ export default function Confidence() {
         <div className="flex aspect-video items-center justify-center bg-bg-surface-secondary">
           {isReady && data?.image ? (
             <img
-              src={getValidationImageUrl(data.image)}
+              src={data.image.startsWith("/") ? data.image : getValidationImageUrl(data.image)}
               alt="Confidence heatmap"
               className="h-full w-full object-contain"
             />

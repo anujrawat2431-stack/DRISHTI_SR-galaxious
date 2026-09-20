@@ -11,6 +11,7 @@ import {
   Upload,
 } from "lucide-react";
 import { getProcessingResults } from "../services/api";
+import BeforeAfterSlider from "../components/BeforeAfterSlider";
 import {
   getActiveDemo,
   getDemoInputPreviewUrl,
@@ -265,82 +266,58 @@ export default function Results() {
         </div>{" "}
       </section>{" "}
       {/* Image Comparison */}{" "}
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section className="rounded-2xl border border-border-subtle bg-bg-surface p-6 shadow-sm">
         {" "}
-        {/* Original */}{" "}
-        <ImagePanel
-          title="Original Sentinel-2"
-          subtitle="10 m input imagery"
-          icon={Upload}
-        >
+        <div className="flex items-center gap-3">
           {" "}
-          {demoInputUrl ? (
-            <div className="flex h-[360px] items-center justify-center overflow-hidden rounded-xl border border-border-subtle bg-black/5">
-              <img
-                src={demoInputUrl}
-                alt="Original uploaded imagery"
-                className="h-full w-full object-contain"
-              />
-            </div>
-          ) : (
-            <div className="flex h-[360px] flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle bg-bg-surface-secondary">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+            {" "}
+            <Sparkles className="h-5 w-5 text-blue-600" />{" "}
+          </div>{" "}
+          <div>
+            {" "}
+            <h2 className="font-semibold text-text-primary">
               {" "}
-              <FileImage className="h-12 w-12 text-slate-300" />{" "}
-              <p className="mt-4 text-sm font-semibold text-text-secondary">
-                {" "}
-                Original image preview{" "}
-              </p>{" "}
-              <p className="mt-1 max-w-sm text-center text-xs text-text-muted">
-                {" "}
-                GeoTIFF visualization will be connected here.{" "}
-              </p>{" "}
-            </div>
-          )}{" "}
-        </ImagePanel>{" "}
-        {/* Enhanced */}{" "}
-        <ImagePanel
-          title="AI Super-Resolved"
-          subtitle="Target output up to 4 m"
-          icon={Sparkles}
-        >
+              Image Comparison{" "}
+            </h2>{" "}
+            <p className="text-xs text-text-muted">
+              {" "}
+              Drag the handle to compare the original vs. the AI-enhanced output{" "}
+            </p>{" "}
+          </div>{" "}
+        </div>{" "}
+        <div className="mt-5">
           {" "}
           {demo ? (
             demoOutputReady ? (
               revealing ? (
-                <div className="flex h-[360px] flex-col items-center justify-center gap-3 rounded-xl border border-border-subtle bg-bg-surface-secondary">
-                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
-                  <p className="text-sm font-medium text-text-secondary">
-                    Finalizing enhanced image...
-                  </p>
-                </div>
-              ) : (
+                <LoadingBuffer label="Finalizing enhanced image..." />
+              ) : demoInputUrl ? (
                 <div
-                  className={`h-[360px] overflow-hidden rounded-xl border border-green-200 bg-black/5 transition-all duration-700 ${
-                    revealed
-                      ? "opacity-100 blur-0"
-                      : "opacity-0 blur-md"
+                  className={`transition-all duration-700 ${
+                    revealed ? "opacity-100" : "opacity-0"
                   }`}
                 >
-                  <img
-                    src={outputUrl}
-                    alt="Enhanced super-resolved output"
-                    className="h-full w-full object-contain"
+                  <BeforeAfterSlider
+                    beforeSrc={demoInputUrl}
+                    afterSrc={outputUrl}
+                    beforeLabel="Before"
+                    afterLabel="After"
                   />
                 </div>
+              ) : (
+                <EmptyPanel
+                  icon={FileImage}
+                  title="Original image preview"
+                  subtitle="GeoTIFF visualization will be connected here."
+                />
               )
             ) : (
-              <div className="flex h-[360px] flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle bg-bg-surface-secondary">
-                {" "}
-                <Sparkles className="h-12 w-12 text-slate-300" />{" "}
-                <p className="mt-4 text-sm font-semibold text-text-secondary">
-                  {" "}
-                  Waiting for AI output{" "}
-                </p>{" "}
-                <p className="mt-1 max-w-sm text-center text-xs text-text-muted">
-                  {" "}
-                  Run Super Resolution first, then come back here.{" "}
-                </p>{" "}
-              </div>
+              <EmptyPanel
+                icon={Sparkles}
+                title="Waiting for AI output"
+                subtitle="Run Super Resolution first, then come back here."
+              />
             )
           ) : outputFile ? (
             <div className="flex h-[360px] flex-col items-center justify-center rounded-xl border border-green-200 bg-green-50">
@@ -356,21 +333,13 @@ export default function Results() {
               </p>{" "}
             </div>
           ) : (
-            <div className="flex h-[360px] flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle bg-bg-surface-secondary">
-              {" "}
-              <Sparkles className="h-12 w-12 text-slate-300" />{" "}
-              <p className="mt-4 text-sm font-semibold text-text-secondary">
-                {" "}
-                Waiting for AI output{" "}
-              </p>{" "}
-              <p className="mt-1 max-w-sm text-center text-xs text-text-muted">
-                {" "}
-                The enhanced GeoTIFF will appear here after the AI
-                super-resolution model produces an output.{" "}
-              </p>{" "}
-            </div>
+            <EmptyPanel
+              icon={Sparkles}
+              title="Waiting for AI output"
+              subtitle="The enhanced GeoTIFF will appear here after the AI super-resolution model produces an output."
+            />
           )}{" "}
-        </ImagePanel>{" "}
+        </div>{" "}
       </section>{" "}
       {/* Actions */}{" "}
       <section className="rounded-2xl border border-border-subtle bg-bg-surface p-6 shadow-sm">
@@ -475,34 +444,37 @@ export default function Results() {
     </div>
   );
 }
-/* -------------------------------------------------- Image Panel
--------------------------------------------------- */ function ImagePanel({
+
+/* -------------------------------------------------- Loading Buffer
+-------------------------------------------------- */
+function LoadingBuffer({ label }: { label: string }) {
+  return (
+    <div className="flex h-[480px] flex-col items-center justify-center gap-4 rounded-xl border border-border-subtle bg-bg-surface-secondary">
+      <div className="relative h-14 w-14">
+        <div className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-20" />
+        <div className="absolute inset-0 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600" />
+      </div>
+      <p className="text-sm font-medium text-text-secondary">{label}</p>
+    </div>
+  );
+}
+
+/* -------------------------------------------------- Empty Panel
+-------------------------------------------------- */
+function EmptyPanel({
+  icon: Icon,
   title,
   subtitle,
-  icon: Icon,
-  children,
 }: {
+  icon: React.ElementType;
   title: string;
   subtitle: string;
-  icon: React.ElementType;
-  children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-border-subtle bg-bg-surface p-6 shadow-sm">
-      {" "}
-      <div className="flex items-center gap-3">
-        {" "}
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-          {" "}
-          <Icon className="h-5 w-5 text-blue-600" />{" "}
-        </div>{" "}
-        <div>
-          {" "}
-          <h2 className="font-semibold text-text-primary"> {title} </h2>{" "}
-          <p className="text-xs text-text-muted"> {subtitle} </p>{" "}
-        </div>{" "}
-      </div>{" "}
-      <div className="mt-5"> {children} </div>{" "}
+    <div className="flex h-[480px] flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle bg-bg-surface-secondary">
+      <Icon className="h-12 w-12 text-slate-300" />
+      <p className="mt-4 text-sm font-semibold text-text-secondary">{title}</p>
+      <p className="mt-1 max-w-sm text-center text-xs text-text-muted">{subtitle}</p>
     </div>
   );
 }

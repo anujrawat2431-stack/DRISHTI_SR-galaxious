@@ -13,6 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 import { getProcessingStatus } from "../services/api";
+import { getActiveDemo, getDemoSuperResolutionDone, getCurrentFile } from "../services/projectState";
 const workflow = [
   {
     number: "01",
@@ -118,14 +119,39 @@ export default function Dashboard() {
   useEffect(() => {
     loadProcessingStatus();
   }, []);
-  const status = processing?.status || "idle";
-  const currentStage = processing?.stage || "Waiting for input";
-  const inputFile = processing?.input_filename || "No file processed";
-  const outputFile = processing?.output_filename || "Waiting for AI output";
-  const hasOutput = Boolean(processing?.output_filename);
+  // Demo datasets never touch the real backend, so `processing` stays
+  // empty for them — check demo state too, or this page always looks
+  // stuck on "Pending" even after a demo run has actually completed.
+  const demo = getActiveDemo();
+  const demoDone = demo ? getDemoSuperResolutionDone() : false;
+  const uploadedFilename = getCurrentFile();
+
+  const hasOutput = demo ? demoDone : Boolean(processing?.output_filename);
+  const hasInputSelected = demo ? true : Boolean(processing?.input_filename);
+
+  const status = demo
+    ? demoDone
+      ? "completed"
+      : "idle"
+    : processing?.status || "idle";
+  const currentStage = demo
+    ? demoDone
+      ? "Enhanced Image"
+      : "Sentinel-2 Input"
+    : processing?.stage || "Waiting for input";
+  const inputFile =
+    uploadedFilename ||
+    processing?.input_filename ||
+    "No file processed";
+  const outputFile = demo
+    ? demoDone
+      ? "Enhanced output (demo)"
+      : "Waiting for AI output"
+    : processing?.output_filename || "Waiting for AI output";
   const normalizedStatus = status.toLowerCase();
   const isProcessing =
-    normalizedStatus === "pending" || normalizedStatus === "processing";
+    !demo &&
+    (normalizedStatus === "pending" || normalizedStatus === "processing");
   return (
     <div className="mx-auto max-w-[1600px] space-y-6">
       {" "}
@@ -281,8 +307,13 @@ export default function Dashboard() {
               const isCurrent =
                 item.title === currentStage ||
                 (item.number === "02" && isProcessing);
+              // Steps 03-06 (Enhanced Image, Confidence, Spectral, Geographic)
+              // all become usable the moment an output exists — whether that
+              // output came from a demo dataset or the real backend.
               const isComplete =
-                item.number === "01" || (item.number === "02" && hasOutput);
+                item.number === "01"
+                  ? hasInputSelected
+                  : hasOutput;
               return (
                 <div
                   key={item.number}
